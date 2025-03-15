@@ -1,8 +1,14 @@
-import React, { useState } from 'react'; // Make sure to import useState
+import React, { useState, useEffect } from 'react'; // Make sure to import useState
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { Camera, CameraView } from 'expo-camera';
 
 export default function HomeScreen() {
-  const [quantity, setQuantity] = useState(0); // Initialize quantity state
+  const [quantity, setQuantity] = useState(0);
+  const [scannedText, setScannedText] = useState<string>('');
+
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [scanned, setScanned] = useState(false);
+  const [torch, setTorch] = useState(false);
 
   const increaseQuantity = () => {
     setQuantity(prevQuantity => prevQuantity + 1);
@@ -13,13 +19,51 @@ export default function HomeScreen() {
   };
 
   const handleSave = () => {
+    
+    setScanned(false);
     alert(`Saved Quantity: ${quantity}`);
+  };
+
+  useEffect(() => {
+    const getCameraPermission = async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === "granted");
+    };
+
+    getCameraPermission();
+  }, []);
+
+  if (hasPermission === null) {
+    return <Text>Requesting for camera permission</Text>;
+  }
+
+  if (hasPermission === false) {
+    return <Text>No access to camera</Text>;
+  }
+
+  const toggleTorch = () => {
+    setTorch((current) => (current === false ? true : false));
+  };
+
+  const handleScanResult = async ({ data }: { data: string }) => {
+    setScannedText(data);
+    setScanned(true);
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.cameraBox} />
-      <Text style={styles.itemName}>Uniforms</Text>
+      <View style={styles.cameraBox}>
+        <CameraView
+          onBarcodeScanned={scanned ? undefined : handleScanResult}
+          barcodeScannerSettings={{
+            barcodeTypes: ["qr", "pdf417"],
+          }}
+          style={StyleSheet.absoluteFillObject}
+          enableTorch={torch}
+          zoom={1}
+        />
+      </View>
+      <Text style={styles.itemName}>{scannedText}</Text>
 
       <View style={styles.inputContainer}>
         <TouchableOpacity style={styles.button} onPress={decreaseQuantity}>
@@ -54,8 +98,8 @@ const styles = StyleSheet.create({
   },
   cameraBox: {
     backgroundColor: 'red',
-    height: '40%',
-    width: '90%',
+    height: 250,
+    width: 250,
     marginTop: 50,
   },
   itemName: {
