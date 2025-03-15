@@ -1,11 +1,16 @@
-import React, { useState } from 'react'; // Make sure to import useState
+import React, { useState, useEffect } from 'react'; // Make sure to import useState
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import QRCodeScanner from '@/components/_salestracker/QRCodeScanner';
+import { initializeDatabase, insertSalesRecord } from '@/src/database/db';
 
 export default function HomeScreen() {
   const [quantity, setQuantity] = useState(0);
   const [scannedText, setScannedText] = useState<string>('');
   const [scanned, setScanned] = useState(false);
+  
+  useEffect(() => {
+    initializeDatabase();
+  }, []);
 
   const increaseQuantity = () => {
     setQuantity(prevQuantity => prevQuantity + 1);
@@ -16,8 +21,14 @@ export default function HomeScreen() {
   };
 
   const handleSave = () => {
-    setScanned(false);
-    alert(`Saved Quantity: ${quantity}`);
+    if (scannedText.trim() && quantity > 0) {
+      insertSalesRecord(scannedText, quantity);
+      alert('Sales record saved successfully!');
+      setScannedText('');
+      setQuantity(0);
+    } else {
+      alert('Please scan a product and enter a valid quantity.');
+    }
   };
 
   return (
