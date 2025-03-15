@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from 'react'; // Make sure to import useState
+import React, { useState } from 'react'; // Make sure to import useState
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { Camera, CameraView } from 'expo-camera';
+import QRCodeScanner from '@/components/_salestracker/QRCodeScanner';
 
 export default function HomeScreen() {
   const [quantity, setQuantity] = useState(0);
   const [scannedText, setScannedText] = useState<string>('');
-
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
-  const [torch, setTorch] = useState(false);
 
   const increaseQuantity = () => {
     setQuantity(prevQuantity => prevQuantity + 1);
@@ -19,50 +16,13 @@ export default function HomeScreen() {
   };
 
   const handleSave = () => {
-    
     setScanned(false);
     alert(`Saved Quantity: ${quantity}`);
   };
 
-  useEffect(() => {
-    const getCameraPermission = async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === "granted");
-    };
-
-    getCameraPermission();
-  }, []);
-
-  if (hasPermission === null) {
-    return <Text>Requesting for camera permission</Text>;
-  }
-
-  if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
-  }
-
-  const toggleTorch = () => {
-    setTorch((current) => (current === false ? true : false));
-  };
-
-  const handleScanResult = async ({ data }: { data: string }) => {
-    setScannedText(data);
-    setScanned(true);
-  };
-
   return (
     <View style={styles.container}>
-      <View style={styles.cameraBox}>
-        <CameraView
-          onBarcodeScanned={scanned ? undefined : handleScanResult}
-          barcodeScannerSettings={{
-            barcodeTypes: ["qr", "pdf417"],
-          }}
-          style={StyleSheet.absoluteFillObject}
-          enableTorch={torch}
-          zoom={1}
-        />
-      </View>
+      <QRCodeScanner onScan={(data) => setScannedText(data)} />
       <Text style={styles.itemName}>{scannedText}</Text>
 
       <View style={styles.inputContainer}>
@@ -74,8 +34,8 @@ export default function HomeScreen() {
           style={styles.quantityInput}
           placeholder="Enter quantity"
           keyboardType="numeric"
-          value={String(quantity)} // Bind the value of quantity
-          onChangeText={text => setQuantity(Number(text))} // Update quantity if user types manually
+          value={String(quantity)}
+          onChangeText={text => setQuantity(Number(text))}
         />
 
         <TouchableOpacity style={styles.button} onPress={increaseQuantity}>
@@ -95,12 +55,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  cameraBox: {
-    backgroundColor: 'red',
-    height: 250,
-    width: 250,
-    marginTop: 50,
   },
   itemName: {
     marginTop: 20,
