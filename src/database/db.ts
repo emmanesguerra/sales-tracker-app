@@ -28,7 +28,7 @@ export const setupDatabase = async () => {
     await database.execAsync(
       `CREATE TABLE IF NOT EXISTS sales (
         id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        scanned_text TEXT NOT NULL, 
+        item_name TEXT NOT NULL, 
         quantity INTEGER NOT NULL, 
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );`
@@ -44,7 +44,7 @@ export const insertSalesRecord = async (scannedText: string, quantity: number) =
   try {
     const database = getDb();
     await database.runAsync(
-      'INSERT INTO sales (scanned_text, quantity) VALUES (?, ?);',
+      'INSERT INTO sales (item_name, quantity) VALUES (?, ?);',
       [scannedText, quantity]
     );
     console.log('Sales record inserted successfully');
