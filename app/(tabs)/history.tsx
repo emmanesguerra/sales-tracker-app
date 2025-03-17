@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { getSalesRecords, clearSalesRecords } from '@/src/database/db';
+import { sendEmail } from '@/services/email/sendEmail';
+import { generateCsv } from '@/services/csv/generateCsv';
 import { useFocusEffect } from 'expo-router';
 import moment from 'moment'; // We no longer need moment-timezone
 
@@ -22,6 +24,20 @@ export default function HistoryScreen() {
     const handleClearHistory = async () => {
         await clearSalesRecords();
         setSalesRecords([]);
+    };
+
+    const handleSendEmail = async () => {
+        try {
+            // Generate CSV
+            const filePath = await generateCsv(salesRecords);
+
+            // Send the email with the generated CSV file path
+            sendEmail(filePath);
+            alert('Sales records emailed successfully!');
+        } catch (error) {
+            console.error('Error:', error);
+            alert('There was an error processing the sales records.');
+        }
     };
 
     // Group sales records by date
@@ -76,8 +92,14 @@ export default function HistoryScreen() {
             )}
 
             {salesRecords.length > 0 && (
-                <TouchableOpacity style={styles.clearButton} onPress={handleClearHistory}>
-                    <Text style={styles.clearButtonText}>Clear History</Text>
+                <TouchableOpacity style={[styles.button, styles.clearButton]} onPress={handleClearHistory}>
+                    <Text style={styles.buttonText}>Clear History</Text>
+                </TouchableOpacity>
+            )}
+
+            {salesRecords.length > 0 && (
+                <TouchableOpacity style={[styles.button, styles.sendEmailButton]} onPress={handleSendEmail}>
+                    <Text style={styles.buttonText}>Send Sales History</Text>
                 </TouchableOpacity>
             )}
         </View>
@@ -136,16 +158,21 @@ const styles = StyleSheet.create({
     headerCell: {
         fontWeight: 'bold',
     },
-    clearButton: {
-        backgroundColor: 'red',
+    button: {
         padding: 10,
         borderRadius: 5,
         alignItems: 'center',
         marginTop: 20,
     },
-    clearButtonText: {
+    buttonText: {
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    clearButton: {
+        backgroundColor: 'red',
+    },
+    sendEmailButton: {
+        backgroundColor: 'blue',
     },
 });

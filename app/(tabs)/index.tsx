@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'; // Make sure to import useState
-import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, PermissionsAndroid } from 'react-native';
 import QRCodeScanner from '@/components/_salestracker/QRCodeScanner';
 import { initializeDatabase, insertSalesRecord } from '@/src/database/db';
+import { requestStoragePermission } from '@/services/permission'; // We'll define this function separately.
 
 export default function HomeScreen() {
   const [quantity, setQuantity] = useState(0);
@@ -9,7 +10,11 @@ export default function HomeScreen() {
   const [scanned, setScanned] = useState(false);
   
   useEffect(() => {
+    // Initialize database
     initializeDatabase();
+    
+    // Request storage permission when component mounts
+    requestStoragePermission();
   }, []);
 
   const increaseQuantity = () => {
